@@ -79,6 +79,38 @@ This is described in [rod-plates.ctl](http://ab-initio.mit.edu/~mccauley/casimir
 
 First define the geometry, consisting of the two metal sidewalls (each 2 pixels thick) and the two blocks:
 
+```py
+import meep as mp
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+resolution = 40
+
+
+a = 1
+h = 0.5
+
+geometry = [mp.Block(center=mp.Vector3(0, a/2+h+1/resolution),
+                     size=mp.Vector3(mp.inf, 2/resolution, mp.inf),
+                     material=metal)]
+
+geometry.append(mp.Block(center=mp.Vector3(0, -a/2-h-1/resolution),
+                     size=mp.Vector3(mp.inf, 2/resolution, mp.inf),
+                     material=metal))
+
+geometry.append(mp.Block(center=mp.Vector3(a, 0),
+                     size=mp.Vector3(a, a, mp.inf),
+                     material=metal))
+
+geometry.append(mp.Block(center=mp.Vector3(-a, 0),
+                     size=mp.Vector3(a, a, mp.inf),
+                     material=metal))
+
+
+```
 ```scm
  (set-param! resolution 40) 
  (define a 1)
@@ -94,7 +126,13 @@ First define the geometry, consisting of the two metal sidewalls (each 2 pixels 
 
 
 Define an air buffer on either side of the blocks and the PML thickness. Then set the computational cell size, and add in pml on the left/right sides:
+```py
+buffer = 1
+dmpl = 1
+lattice = [mp.lattice(size=mp.Vector3(2*dmpl + 3*a + bnuffer, 2/resolution + a + 2*h, mp.no_size))]
 
+
+```
 ```scm
  (define buffer 1)
  (define dpml 1)
@@ -105,6 +143,9 @@ Define an air buffer on either side of the blocks and the PML thickness. Then se
 
 Define the source surface $S$; here we take it to be a square with edges 0.05 away from the right block on each side:
 
+```py
+
+```
 ```scm
  (define S (volume (center a 0) (size (+ a 0.1) (+ a 0.1))))
 ```
@@ -112,6 +153,9 @@ Define the source surface $S$; here we take it to be a square with edges 0.05 aw
 
 As described in Part II, we add a uniform, frequency-independent D-conductivity $\sigma$ everywhere:
 
+```py
+Sigma = 1
+```
 ```scm
  (define Sigma 1)
 ```
@@ -121,11 +165,16 @@ As described in Part II, we add a uniform, frequency-independent D-conductivity 
 
 As discussed in Part I, the optimal value of $\sigma$ depends on the system under consideration. In our case, $\sigma = 1$ is optimal or nearly optimal. With this choice value of `Sigma`, we can use a very short runtime `T` for the simulation:
 
+```py
+T = 20
+```
+
 ```
  (define-param T 20)  
 ```
 
 The only thing left to define is the function $g(-t)$. This is done with the Meep function `(make-casimir-g` `T` `dt` `Sigma` `ft)`:
+
 
 ```
  (define gt (make-casimir-g T (/ Courant resolution) Sigma Ex))
